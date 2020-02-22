@@ -1,5 +1,5 @@
 from twilio.rest import Client 
-import apiKeys as keys
+import PhoneMessaging.apiKeys as keys
 
 class Message:
     account_sid = keys.account_sid
