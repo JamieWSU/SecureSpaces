@@ -41,8 +41,10 @@ zeak = Person("Zeak.jpg", "Intruder")
 # Load a second sample picture and learn how to recognize it.
 kyle = Person("Kyle.jpg", "Intruder") #Intruder's have the name Intruder
 
+val = Person("val.jpg", "Val")
+
 #Add everyone to a persons array
-personArray = [zeak, kyle]
+personArray = [zeak, kyle, val]
 
 # Create arrays of known face encodings and their names
 known_face_encodings = []
@@ -92,7 +94,6 @@ while True:
             if matches[best_match_index]:
                 name = known_face_names[best_match_index]
             if name == "Intruder":
-                print(personArray[best_match_index].hasSentSMS)
                 if personArray[best_match_index].hasSentSMS == False:
                     personArray[best_match_index].flipSentSMS()
                     sendIntruderMessage()
