@@ -1,12 +1,18 @@
 from twilio.rest import Client 
 import apiKeys as keys
-message = input("Enter your message: ") 
-# Your Account SID from twilio.com/console
-# Your Auth Token from twilio.com/console
 
-client = Client(keys.account_sid, keys.auth_token)
+class Message:
+    account_sid = keys.account_sid
+    auth_token = keys.auth_token
+    def __init__(self, message):
+        self.message = message    
+    def sendMessage(self):
+        # Your Account SID from twilio.com/console
+        # Your Auth Token from twilio.com/console
 
-message = client.messages.create(
-    to="+15093080228",
-    from_="+12055767590",
-    body=message)
+        client = Client(self.account_sid, self.auth_token)
+
+        message = client.messages.create(
+            to="+15093080228",
+            from_="+12055767590",
+            body=self.message)
