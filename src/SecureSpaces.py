@@ -29,33 +29,17 @@ class Person:
 #personArray = [zeak, kyle]
 friendsDir = "friends"
 intruderDir = "intruders"
-unknownDir = "unknown"
-videoDir = "video"
 
 friends = [f for f in listdir(friendsDir) if isfile(join(friendsDir, f)) ]
-unknowns = [f for f in listdir(unknownDir) if isfile(join(unknownDir, f)) ]
 intruders = [f for f in listdir(intruderDir) if isfile(join(intruderDir, f)) ]
-video = [f for f in listdir(videoDir) if isfile(join(videoDir, f)) ]
 personArray = []
-video_face_encoding = []
-print(friends)
-for indexF in range(0, len(friends)):
-    personArray.append(Person("./"+friendsDir +"/"+friends[indexF], "friend"))
+video_face_encoding = []    
 
-# my_face_encoding now contains a universal 'encoding' of my facial features that can be compared to any other picture of a face!
-#for indexU in range(0, len(unknowns)):
-    #unknown_picture = face_recognition.load_image_file("./"+unknownDir+"/"+unknowns[indexU])
-    #personArray.append(Person(face_recognition.face_encodings(unknown_picture),"unknown"))
+for friend in friends:
+    personArray.append(Person("./"+ friendsDir +"/"+ friend, "friend"))
 
-
-#for indexI in range(0, len(intruders)):
-    #intruder_picture = face_recognition.load_image_file("./"+intruderDir+"/"+intruders[indexI])
-    #personArray.append(Person(face_recognition.face_encodings(intruder_picture)[0], "intruder"))
-
-#for indexV in range(0, len(video)):
-#    video_picture = face_recognition.load_image_file("./"+videoDir+"/"+video[indexV])
-#    video_face_encoding.append(Person(face_recognition.face_encodings(video_picture)[0], "video"))
-
+for intruder in intruders:
+    personArray.append(Person("./"+ intruderDir +"/"+ intruder, "Intruder"))
 
 def sendIntruderMessage():
     # datetime object containing current date and time
@@ -117,7 +101,6 @@ while True:
             if matches[best_match_index]:
                 name = known_face_names[best_match_index]
             if name == "Intruder":
-                print(personArray[best_match_index].hasSentSMS)
                 if personArray[best_match_index].hasSentSMS == False:
                     personArray[best_match_index].flipSentSMS()
                     sendIntruderMessage()
