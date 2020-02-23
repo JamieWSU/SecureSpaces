@@ -1,26 +1,44 @@
 import React from 'react';
-import logo from './logo.svg';
+import { Image, Button, Card, ButtonToolbar, ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+class App extends React.Component {
+
+  constructor(props) {
+    super(props)
+    this.state = {
+      file: null
+    }
+    this.handleChange = this.handleChange.bind(this)
+  }
+
+  handleChange(event) {
+    this.setState({
+      file: URL.createObjectURL(event.target.files[0])
+    })
+  }
+  render() {
+    return (
+      <div className="App">
+        <Image src={this.state.file} thumbnail />
+        <br />
+        <Image className='upload' src={"https://simpleicon.com/wp-content/uploads/cloud-upload-1.png"} />
+        <br />
+        <Button>
+          <input type="file" onChange={this.handleChange} name="file" id="file" class="inputfile" />
+          <label for="file">Upload Image</label>
+        </Button>
+        <hr />
+        <ButtonToolbar className={"radiobutton"}>
+          <ToggleButtonGroup type="radio" name="options" defaultValue={1}>
+            <ToggleButton value={1}>Intruder</ToggleButton>
+            <ToggleButton value={2}>Authorized</ToggleButton>
+          </ToggleButtonGroup>
+        </ButtonToolbar>
+      </div>
+    );
+  }
 }
 
 export default App;
