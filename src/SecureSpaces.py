@@ -194,7 +194,14 @@ process_this_frame = True
 friendsOnlyIntruder = False
 alreadySentSMSIntruders = []
 alreadySentSMSUnknown = []
+frameCount = 0
 while True:
+    frameCount += 1
+    if (frameCount > 100):
+        print("Updating...")
+        allFaces.updateDatabase()
+        frameCount = 0
+
     # Grab a single frame of video
     ret, frame = video_capture.read()
 
