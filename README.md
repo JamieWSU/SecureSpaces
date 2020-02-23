@@ -14,4 +14,4 @@ Used:
 - twilio
 - firebase
 - react
-- face recognition (https://github.com/ageitgey/face_recognition
+- face recognition (https://github.com/ageitgey/face_recognition)
