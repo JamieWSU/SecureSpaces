@@ -7,6 +7,8 @@ import numpy as np
 import PhoneMessaging.send_message as SMS
 from firebase import Firebase
 from datetime import datetime
+import threading
+import time
 
 config = {
     "apiKey": "AIzaSyCIb7b77N60HaFsUwsxuiiRJMtUfoC0ubs",
@@ -18,10 +20,8 @@ config = {
 firebase = Firebase(config)
 
 storage = firebase.storage()
-#print(allFiles)
 
-#storage.child
-
+db = firebase.database()
 # This is a demo of running face recognition on live video from your webcam. It's a little more complicated than the
 # other example, but it includes some basic performance tweaks to make things run a lot faster:
 #   1. Process each video frame at 1/4 resolution (though still display it at full resolution)
@@ -39,20 +39,46 @@ class Person:
     def flipSentSMS(self):
         self.hasSentSMS = True
 
+def imageIDIsInArray(givenArray, givenID):
+    for id_user in givenArray:
+        if id_user == givenID:
+            return True
+    return False
+
+class Faces:
+    friends = [f for f in listdir(friendsDir) if isfile(join(friendsDir, f)) ]
+    intruders = [f for f in listdir(intruderDir) if isfile(join(intruderDir, f)) ]
+    personArray = []
+    imageIDArray = []
+    def updateDatabase():
+        isUpdated = False
+        all_users = db.child("intruders").get()
+        for user in all_users.each():
+            if imageIDIsInArray(imageIDArray,user.val()["imageId"]) == False:
+                isUpdated = True
+                all_users.append(user.val()["imageId"])
+                storage.child(user.val()["imageId"]).download("intruders/" + user.val()["imageId"])
+        if isUpdated:
+            for friend in friends:
+                personArray.append(Person("./"+ friendsDir +"/"+ friend, "friend"))
+            for intruder in intruders:
+                personArray.append(Person("./"+ intruderDir +"/"+ intruder, "Intruder"))
+
+
+
 # Get a reference to webcam #0 (the default one)
 #video_capture = cv2.VideoCapture(0)
 #Add everyone to a persons array
 #personArray = [zeak, kyle]
+
+
+allFaces = Faces()
+allFaces.updateDataBase()
 friendsDir = "friends"
 intruderDir = "intruders"
 friendsOnly = False;
 if len(sys.argv) == 2 and sys.argv[1] == 'S':
     friendsOnly = True
-
-friends = [f for f in listdir(friendsDir) if isfile(join(friendsDir, f)) ]
-intruders = [f for f in listdir(intruderDir) if isfile(join(intruderDir, f)) ]
-personArray = []
-video_face_encoding = []    
 
 for friend in friends:
     personArray.append(Person("./"+ friendsDir +"/"+ friend, "friend"))
