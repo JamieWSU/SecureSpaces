@@ -10,6 +10,9 @@ from datetime import datetime
 import threading
 import time
 from pathlib import Path
+import asyncio
+import threading
+import urllib.request
 
 config = {
     "apiKey": "AIzaSyCIb7b77N60HaFsUwsxuiiRJMtUfoC0ubs",
@@ -46,7 +49,8 @@ def imageIDIsInArray(givenArray, givenID):
             return True
     return False
 
-class Faces:
+
+class Faces(threading.Thread):
     friends = [f for f in listdir("friends") if isfile(join("friends", f)) ]
     intruders = [f for f in listdir("intruders") if isfile(join("intruders", f)) ]
     personArray = []
@@ -57,35 +61,50 @@ class Faces:
     imageIDArray = []
     def updateDatabase(self):
         isUpdated = False
+        all_users = db.child("authorized").get()
+        index = 0
+        for user in all_users.each():
+            url = storage.child(user.val()["imageId"]).get_url("")
+            urllib.request.urlretrieve(url, "friends/friends%d.jpg" % index)
+            index += 1
+            isUpdated = True
         all_users = db.child("intruders").get()
-        isBroken = False
-        try:
-            all_users.each()
-        except:
-            isBroken = True
-        if (isBroken):
-            return 1
+        index = 0
+        for user in all_users.each():
+            url = storage.child(user.val()["imageId"]).get_url("")
+            urllib.request.urlretrieve(url, "intruders/intruder%d.jpg" % index)
+            index += 1
+            isUpdated = True
+        if isUpdated:
+            for friend in self.friends:
+                self.friendsArrayImage.append("./friends/"+ friend)
+                self.friendsArrayName.append("Authorized")
+            for intruder in self.intruders:
+                self.intrudersArrayImage.append("./intruders/"+ intruder)
+                self.intrudersArrayName.append("Intruder " + str(len(self.intrudersArrayName)))
+
+        '''
         for user in all_users.each():
             if imageIDIsInArray(self.imageIDArray,user.val()["imageId"]) == False:
                 isUpdated = True
                 self.imageIDArray.append(user.val()["imageId"])
-                storage.child(user.val()["imageId"].split(".")[0]).download("intruders/intruders.jpg")
+                url = storage.child(user.val()["imageId"].split(".")[0]).get_url("")
+                urllib.request.urlretrieve(url, "intruders/intruders.jpg")
         all_users = db.child("authorized").get()
         for user in all_users.each():
             if imageIDIsInArray(self.imageIDArray,user.val()["imageId"]) == False:
                 isUpdated = True
                 self.imageIDArray.append(user.val()["imageId"])
-                storage.child(user.val()["imageId"].split(".")[0]).download("friends/Jamie.jpg")
+                url = storage.child(user.val()["imageId"].split(".")[0]).get_url("")
+                urllib.request.urlretrieve(url, "friends/Jamie.jpg")
         if isUpdated:
             for friend in self.friends:
-                self.friendsArrayImage.append("friends/"+ friend)
+                self.friendsArrayImage.append("./friends/"+ friend)
                 self.friendsArrayName.append("Authorized")
             for intruder in self.intruders:
-                self.intrudersArrayImage.append("intruders/"+ intruder)
+                self.intrudersArrayImage.append("./intruders/"+ intruder)
                 self.intrudersArrayName.append("Intruder" + str(len(self.intrudersArrayName)))
-
-
-
+        '''
 # Get a reference to webcam #0 (the default one)
 #video_capture = cv2.VideoCapture(0)
 #Add everyone to a persons array
@@ -129,9 +148,8 @@ known_face_names = []
 
 
 def updateImages(imageFile, name):
-    print(imageFile)
-    imageNew = face_recognition.load_image_file(imageFile)[0]
-    image_face_encoding = face_recognition.face_encodings(imageNew)
+    imageNew = face_recognition.load_image_file(imageFile)
+    image_face_encoding = face_recognition.face_encodings(imageNew)[0]
     known_face_names.append(name)
     known_face_encodings.append(image_face_encoding)
 
@@ -150,15 +168,10 @@ for face, name in zip(allFaces.intrudersArrayImage, allFaces.intrudersArrayName)
     updateImages(face, name)
     index += 1
 
-
 # Initialize some variables
 face_locations = []
 face_encodings = []
 face_names = []
-if (len(known_face_encodings) == 0):
-    print("No Data :(")
-    quit()
-print(known_face_names)
 process_this_frame = True
 friendsOnlyIntruder = False
 while True:
