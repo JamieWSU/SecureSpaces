@@ -31,8 +31,7 @@ friendsDir = "friends"
 intruderDir = "intruders"
 friendsOnly = False;
 if len(sys.argv) == 2 and sys.argv[1] == 'S':
-    friendsOnly = True;
-    print("True");
+    friendsOnly = True
 
 friends = [f for f in listdir(friendsDir) if isfile(join(friendsDir, f)) ]
 intruders = [f for f in listdir(intruderDir) if isfile(join(intruderDir, f)) ]
@@ -71,7 +70,7 @@ face_locations = []
 face_encodings = []
 face_names = []
 process_this_frame = True
-
+friendsOnlyIntruder = False
 while True:
     # Grab a single frame of video
     ret, frame = video_capture.read()
@@ -104,11 +103,13 @@ while True:
             best_match_index = np.argmin(face_distances)
             if matches[best_match_index]:
                 name = known_face_names[best_match_index]
-            if (name == "Intruder" and !friendsOnly) or friendsOnly:
-                name = "Intruder"
+            if (name == "Intruder"):
                 if personArray[best_match_index].hasSentSMS == False:
                     personArray[best_match_index].flipSentSMS()
-                    sendIntruderMessage()
+                    #sendIntruderMessage()
+            if (friendsOnly and name == "Unknown" and friendsOnlyIntruder == False):
+                #sendIntruderMessage()
+                friendsOnlyIntruder = True
             face_names.append(name)
 
     process_this_frame = not process_this_frame
