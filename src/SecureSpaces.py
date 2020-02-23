@@ -82,17 +82,22 @@ class Faces(threading.Thread):
         all_users = db.child("authorized").get()
         index = 0
         for user in all_users.each():
-            url = storage.child(user.val()["imageId"]).get_url("")
-            urllib.request.urlretrieve(url, "friends/friends%d.jpg" % index)
-            index += 1
-            isUpdated = True
+            if (imageIDIsInArray(self.imageIDArray, user.val()["imageId"]) == False):
+                self.imageIDArray.append(user.val()["imageId"])
+                url = storage.child(user.val()["imageId"]).get_url("")
+                #print(url)
+                urllib.request.urlretrieve(url, "friends/friends%d.jpg" % index)
+                index += 1
+                isUpdated = True
         all_users = db.child("intruders").get()
         index = 0
         for user in all_users.each():
-            url = storage.child(user.val()["imageId"]).get_url("")
-            urllib.request.urlretrieve(url, "intruders/intruder%d.jpg" % index)
-            index += 1
-            isUpdated = True
+            if (imageIDIsInArray(self.imageIDArray, user.val()["imageId"]) == False):
+                self.imageIDArray.append(user.val()["imageId"])
+                url = storage.child(user.val()["imageId"]).get_url("")
+                urllib.request.urlretrieve(url, "intruders/intruder%d.jpg" % index)
+                index += 1
+                isUpdated = True
         if isUpdated:
             for friend in self.friends:
                 self.friendsArrayImage.append("./friends/"+ friend)
@@ -100,7 +105,6 @@ class Faces(threading.Thread):
             for intruder in self.intruders:
                 self.intrudersArrayImage.append("./intruders/"+ intruder)
                 self.intrudersArrayName.append("Intruder " + str(len(self.intrudersArrayName)))
-
         '''
         for user in all_users.each():
             if imageIDIsInArray(self.imageIDArray,user.val()["imageId"]) == False:
@@ -175,16 +179,18 @@ index = 0
 
 #image = face_recognition.load_image_file(allFaces.friendsArrayImage[0])
 #face_recognition.face_encodings(image)
+def updateArrays():
+    index = 0
+    for face, name in zip(allFaces.friendsArrayImage, allFaces.friendsArrayName):
+        updateImages(face, name)
+        index += 1
+    index = 0
 
+    for face, name in zip(allFaces.intrudersArrayImage, allFaces.intrudersArrayName):
+        updateImages(face, name)
+        index += 1
 
-for face, name in zip(allFaces.friendsArrayImage, allFaces.friendsArrayName):
-    updateImages(face, name)
-    index += 1
-index = 0
-
-for face, name in zip(allFaces.intrudersArrayImage, allFaces.intrudersArrayName):
-    updateImages(face, name)
-    index += 1
+updateArrays()
 
 # Initialize some variables
 face_locations = []
@@ -194,11 +200,14 @@ process_this_frame = True
 friendsOnlyIntruder = False
 alreadySentSMSIntruders = []
 alreadySentSMSUnknown = []
-frameCount = 0
+frameCount  = 0
 while True:
     frameCount += 1
     if (frameCount > 100):
+        print("Updating Database...")
         allFaces.updateDatabase()
+        updateArrays()
+        print("Done")
         frameCount = 0
 
     # Grab a single frame of video
