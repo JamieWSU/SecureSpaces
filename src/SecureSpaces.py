@@ -49,6 +49,10 @@ class Faces:
     friends = [f for f in listdir("friends") if isfile(join("friends", f)) ]
     intruders = [f for f in listdir("intruders") if isfile(join("intruders", f)) ]
     personArray = []
+    friendsArrayImage = []
+    friendsArrayName = []
+    intrudersArrayImage = []
+    intrudersArrayName = []
     imageIDArray = []
     def updateDatabase(self):
         isUpdated = False
@@ -61,7 +65,6 @@ class Faces:
         if (isBroken):
             return 1
         for user in all_users.each():
-            print(user.val()["imageId"])
             if imageIDIsInArray(self.imageIDArray,user.val()["imageId"]) == False:
                 isUpdated = True
                 self.imageIDArray.append(user.val()["imageId"])
@@ -73,10 +76,12 @@ class Faces:
                 self.imageIDArray.append(user.val()["imageId"])
                 storage.child(user.val()["imageId"]).download("authorized/" + user.val()["imageId"])
         if isUpdated:
-            for friend in friends:
-                personArray.append(Person("./"+ friendsDir +"/"+ friend, "friend"))
-            for intruder in intruders:
-                personArray.append(Person("./"+ intruderDir +"/"+ intruder, "Intruder"))
+            for friend in self.friends:
+                self.friendsArrayImage.append("./"+ friendsDir +"/"+ friend)
+                self.friendsArrayName.append("Authorized")
+            for intruder in self.intruders:
+                self.intrudersArrayImage.append("./"+ intruderDir +"/"+ intruder)
+                self.intrudersArrayName.append("Intruder" + len(intrudersArrayName))
 
 
 
@@ -92,11 +97,11 @@ friendsOnly = False;
 if len(sys.argv) == 2 and sys.argv[1] == 'S':
     friendsOnly = True
 
-for friend in friends:
-    personArray.append(Person("./"+ friendsDir +"/"+ friend, "friend"))
+#for friend in allFaces.friends:
+    #personArray.append(Person("./"+ friendsDir +"/"+ friend, "friend"))
 
-for intruder in intruders:
-    personArray.append(Person("./"+ intruderDir +"/"+ intruder, "Intruder"))
+#for intruder in allFaces.intruders:
+    #personArray.append(Person("./"+ intruderDir +"/"+ intruder, "Intruder"))
 
 def sendIntruderMessage():
     # datetime object containing current date and time
@@ -113,16 +118,40 @@ video_capture = cv2.VideoCapture(0)
 # Create arrays of known face encodings and their names
 known_face_encodings = []
 known_face_names = []
-for person in personArray:
-    known_face_encodings.append(person.image_face_encoding)
-    known_face_names.append(person.faceName)
+#for person in allFaces.personArray:
+#known_face_encodings.append(person.image_face_encoding)
+#known_face_names.append(person.faceName)
 #known_face_encodings = [obama_face_encoding, biden_face_encoding]
 #known_face_names = ["Zeak","Intruder"]
+
+
+
+
+def updateImages(imageFile, name):
+    imageNew = face_recognition.load_image_file(imageFile)
+    image_face_encoding = face_recognition.face_encodings(imageNew)[0]
+    known_face_names.append(name)
+    known_face_encodings.append(image_face_encoding)
+
+
+index = 0
+for face in allFaces.friendsArrayImage:
+    updateImages(face.friendsArrayImage[index], face.friendsArrayName[index])
+    index += 1
+index = 0
+
+for face in allFaces.intrudersArrayImage:
+    updateImages(face.intrudersArrayImage[index], face.intrudersArrayName[index])
+    index += 1
+
 
 # Initialize some variables
 face_locations = []
 face_encodings = []
 face_names = []
+if (len(known_face_encodings) == 0):
+    print("No Data :(")
+    quit()
 process_this_frame = True
 friendsOnlyIntruder = False
 while True:
