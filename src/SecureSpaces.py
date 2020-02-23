@@ -1,7 +1,7 @@
 from os import listdir
 from os.path import isfile, join
 import face_recognition
-import face_recognition
+import sys
 import cv2
 import numpy as np
 import PhoneMessaging.send_message as SMS
@@ -29,6 +29,10 @@ class Person:
 #personArray = [zeak, kyle]
 friendsDir = "friends"
 intruderDir = "intruders"
+friendsOnly = False;
+if len(sys.argv) == 2 and sys.argv[1] == 'S':
+    friendsOnly = True;
+    print("True");
 
 friends = [f for f in listdir(friendsDir) if isfile(join(friendsDir, f)) ]
 intruders = [f for f in listdir(intruderDir) if isfile(join(intruderDir, f)) ]
@@ -100,7 +104,7 @@ while True:
             best_match_index = np.argmin(face_distances)
             if matches[best_match_index]:
                 name = known_face_names[best_match_index]
-            if name == "Intruder":
+            if name == "Intruder" or (friendlyOnly and name == "Unknown"):
                 if personArray[best_match_index].hasSentSMS == False:
                     personArray[best_match_index].flipSentSMS()
                     sendIntruderMessage()
