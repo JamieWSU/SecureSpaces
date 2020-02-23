@@ -46,18 +46,32 @@ def imageIDIsInArray(givenArray, givenID):
     return False
 
 class Faces:
-    friends = [f for f in listdir(friendsDir) if isfile(join(friendsDir, f)) ]
-    intruders = [f for f in listdir(intruderDir) if isfile(join(intruderDir, f)) ]
+    friends = [f for f in listdir("friends") if isfile(join("friends", f)) ]
+    intruders = [f for f in listdir("intruders") if isfile(join("intruders", f)) ]
     personArray = []
     imageIDArray = []
-    def updateDatabase():
+    def updateDatabase(self):
         isUpdated = False
         all_users = db.child("intruders").get()
+        isBroken = False
+        try:
+            all_users.each()
+        except:
+            isBroken = True
+        if (isBroken):
+            return 1
         for user in all_users.each():
-            if imageIDIsInArray(imageIDArray,user.val()["imageId"]) == False:
+            print(user.val()["imageId"])
+            if imageIDIsInArray(self.imageIDArray,user.val()["imageId"]) == False:
                 isUpdated = True
-                all_users.append(user.val()["imageId"])
+                self.imageIDArray.append(user.val()["imageId"])
                 storage.child(user.val()["imageId"]).download("intruders/" + user.val()["imageId"])
+        all_users = db.child("authorized").get()
+        for user in all_users.each():
+            if imageIDIsInArray(self.imageIDArray,user.val()["imageId"]) == False:
+                isUpdated = True
+                self.imageIDArray.append(user.val()["imageId"])
+                storage.child(user.val()["imageId"]).download("authorized/" + user.val()["imageId"])
         if isUpdated:
             for friend in friends:
                 personArray.append(Person("./"+ friendsDir +"/"+ friend, "friend"))
@@ -73,9 +87,7 @@ class Faces:
 
 
 allFaces = Faces()
-allFaces.updateDataBase()
-friendsDir = "friends"
-intruderDir = "intruders"
+allFaces.updateDatabase()
 friendsOnly = False;
 if len(sys.argv) == 2 and sys.argv[1] == 'S':
     friendsOnly = True
