@@ -14,7 +14,7 @@ import asyncio
 import threading
 import urllib.request
 from PIL import Image
-
+import os
 config = {
     "apiKey": "AIzaSyCIb7b77N60HaFsUwsxuiiRJMtUfoC0ubs",
     "authDomain": "spaces-f099d.firebaseapp.com",
@@ -253,11 +253,15 @@ while True:
         bottom *= 4
         left *= 4
         if ("Intruder" in name):
+            os.system("gnome-screensaver-command -l")
+            quit()
             if isInStrArray(alreadySentSMSIntruders, name) == False:
                 alreadySentSMSIntruders.append(name)
                 cv2.imwrite("frame.jpg", frame)     # save frame as JPEG file
                 cropImage(left - 100, top - 100, right + 100, bottom + 100, "frame.jpg")
         if (name == "Unknown" and friendsOnly):
+            os.system("gnome-screensaver-command -l")
+            quit()
             if isInStrArray(alreadySentSMSIntruders, name) == False:
                 nameOfUk = name + str(len(alreadySentSMSUnknown))               
                 alreadySentSMSUnknown.append(nameOfUk)
