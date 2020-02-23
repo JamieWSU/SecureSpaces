@@ -159,7 +159,7 @@ while True:
                 alreadySentSMSIntruders.append(name)
                 #sendIntruderMessage()
                 cv2.imwrite("frame.jpg", frame)     # save frame as JPEG file
-                #cropImage(left - 100, top - 100, right + 100, bottom + 100, "frame.jpg")
+                cropImage(left - 100, top - 100, right + 100, bottom + 100, "frame.jpg")
         if (name == "Unknown" and friendsOnly):
             if isInStrArray(alreadySentSMSIntruders, name) == False:
                 nameOfUk = name + str(len(alreadySentSMSUnknown))               
