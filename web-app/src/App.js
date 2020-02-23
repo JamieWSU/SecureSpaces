@@ -1,5 +1,7 @@
 import React from 'react';
 import { Image, Button, Form, Col } from 'react-bootstrap';
+import * as firebase from "firebase/app";
+import "firebase/storage";
 import './App.css';
 
 
@@ -40,10 +42,14 @@ class App extends React.Component {
   }
 
   handleChange(event) {
-    this.setState({
-      ...this.state,
-      file: URL.createObjectURL(event.target.files[0])
-    })
+    try {
+      this.setState({
+        ...this.state,
+        file: URL.createObjectURL(event.target.files[0])
+      })
+    } catch (error) {
+      console.log(error)
+    }
   }
   render() {
     console.log(this.state.intruder)
@@ -72,7 +78,6 @@ class App extends React.Component {
             <Button variant="dark" size="lg" disabled={!this.state.file || (!this.state.name && !this.state.intruder) ? true : false}>Submit</Button>
           </Col>
         </Form>
-        <br/>
       </div >
     );
   }
