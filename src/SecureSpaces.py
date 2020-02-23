@@ -5,7 +5,23 @@ import sys
 import cv2
 import numpy as np
 import PhoneMessaging.send_message as SMS
+from firebase import Firebase
 from datetime import datetime
+
+config = {
+    "apiKey": "AIzaSyCIb7b77N60HaFsUwsxuiiRJMtUfoC0ubs",
+    "authDomain": "spaces-f099d.firebaseapp.com",
+    "databaseURL": "https://spaces-f099d.firebaseio.com",
+    "storageBucket": "spaces-f099d.appspot.com"
+}
+
+firebase = Firebase(config)
+
+storage = firebase.storage()
+#print(allFiles)
+
+#storage.child
+
 # This is a demo of running face recognition on live video from your webcam. It's a little more complicated than the
 # other example, but it includes some basic performance tweaks to make things run a lot faster:
 #   1. Process each video frame at 1/4 resolution (though still display it at full resolution)
