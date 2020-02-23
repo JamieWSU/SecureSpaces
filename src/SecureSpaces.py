@@ -130,13 +130,17 @@ known_face_names = []
 
 def updateImages(imageFile, name):
     print(imageFile)
-    imageNew = face_recognition.load_image_file(imageFile)
-    image_face_encoding = face_recognition.face_encodings(imageNew)[0]
+    imageNew = face_recognition.load_image_file(imageFile)[0]
+    image_face_encoding = face_recognition.face_encodings(imageNew)
     known_face_names.append(name)
     known_face_encodings.append(image_face_encoding)
 
-
 index = 0
+
+#image = face_recognition.load_image_file(allFaces.friendsArrayImage[0])
+#face_recognition.face_encodings(image)
+
+
 for face, name in zip(allFaces.friendsArrayImage, allFaces.friendsArrayName):
     updateImages(face, name)
     index += 1
@@ -154,7 +158,7 @@ face_names = []
 if (len(known_face_encodings) == 0):
     print("No Data :(")
     quit()
-print(known_face_encodings)
+print(known_face_names)
 process_this_frame = True
 friendsOnlyIntruder = False
 while True:
