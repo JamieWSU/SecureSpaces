@@ -1,4 +1,6 @@
+@import url('https://fonts.googleapis.com/css?family=Tomorrow&display=swap');
 .App {
+  font-family: 'Tomorrow' ;
   text-align: center;
   margin-top: 10px;
   margin-bottom: 60px;
