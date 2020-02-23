@@ -4,7 +4,7 @@ import face_recognition
 import sys
 import cv2
 import numpy as np
-import PhoneMessaging.send_message as SMS
+import PhoneMessaging.send_mms as SMS
 from firebase import Firebase
 from datetime import datetime
 import threading
@@ -13,6 +13,7 @@ from pathlib import Path
 import asyncio
 import threading
 import urllib.request
+from PIL import Image
 
 config = {
     "apiKey": "AIzaSyCIb7b77N60HaFsUwsxuiiRJMtUfoC0ubs",
@@ -26,6 +27,23 @@ firebase = Firebase(config)
 storage = firebase.storage()
 
 db = firebase.database()
+
+def cropImage(left, upper, right, lower, frame):
+    intruder = Image.open(frame)
+    box = (left, upper, right, lower)
+    intruder_crop = intruder.crop((left, upper, right, lower))
+    intruder_crop.save("./temp/"+frame, quality=95)
+    storage.child("tmp/"+frame).put("./temp/"+frame)
+    url = storage.child("tmp/"+frame).get_url("")
+    message = SMS.Message("Intruder!")
+    message.sendMessage(url)
+
+def isInStrArray(strArray, string):
+    for string_check in strArray:
+        if string_check == string:
+            return True
+    return False
+
 # This is a demo of running face recognition on live video from your webcam. It's a little more complicated than the
 # other example, but it includes some basic performance tweaks to make things run a lot faster:
 #   1. Process each video frame at 1/4 resolution (though still display it at full resolution)
@@ -174,6 +192,8 @@ face_encodings = []
 face_names = []
 process_this_frame = True
 friendsOnlyIntruder = False
+alreadySentSMSIntruders = []
+alreadySentSMSUnknown = []
 while True:
     # Grab a single frame of video
     ret, frame = video_capture.read()
@@ -225,6 +245,22 @@ while True:
         right *= 4
         bottom *= 4
         left *= 4
+        if ("Intruder" in name):
+            if isInStrArray(alreadySentSMSIntruders, name) == False:
+                alreadySentSMSIntruders.append(name)
+                cv2.imwrite("frame.jpg", frame)     # save frame as JPEG file
+                cropImage(left - 100, top - 100, right + 100, bottom + 100, "frame.jpg")
+        if (name == "Unknown" and friendsOnly):
+            if isInStrArray(alreadySentSMSIntruders, name) == False:
+                nameOfUk = name + str(len(alreadySentSMSUnknown))               
+                alreadySentSMSUnknown.append(nameOfUk)
+                cv2.imwrite(nameOfUk + ".jpg", frame)
+                print(nameOfUk)
+                cropImage(left - 100, top - 100, right + 100, bottom + 100, nameOfUk + ".jpg") 
+                ukimage = face_recognition.load_image_file(nameOfUk + ".jpg")
+                ukimage_face_encoding = face_recognition.face_encodings(ukimage)[0]
+                known_face_encodings.append(ukimage_face_encoding)
+                known_face_names.append(nameOfUk)
 
         # Draw a box around the face
         cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
