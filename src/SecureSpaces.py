@@ -104,7 +104,8 @@ while True:
             best_match_index = np.argmin(face_distances)
             if matches[best_match_index]:
                 name = known_face_names[best_match_index]
-            if name == "Intruder" or (friendsOnly and name == "Unknown"):
+            if (name == "Intruder" and !friendsOnly) or friendsOnly:
+                name = "Intruder"
                 if personArray[best_match_index].hasSentSMS == False:
                     personArray[best_match_index].flipSentSMS()
                     sendIntruderMessage()
