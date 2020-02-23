@@ -1,9 +1,18 @@
 import React from 'react';
+import * as APIKEYS from './apiKeys';
+import firebase from 'firebase'
 import { Image, Button, Form, Col } from 'react-bootstrap';
-import * as firebase from "firebase/app";
-import "firebase/storage";
 import './App.css';
+import uuidv4 from 'uuid/v4';
 
+const config = {
+  apiKey: APIKEYS.apiKey,
+  authDomain: APIKEYS.authDomain,
+  databaseURL: APIKEYS.databaseURL,
+  projectId: APIKEYS.projectId,
+  storageBucket: APIKEYS.storageBucket,
+  messagingSenderId: APIKEYS.messagingSenderId,
+}
 
 class App extends React.Component {
 
@@ -14,9 +23,40 @@ class App extends React.Component {
       intruder: true
     }
     this.handleChange = this.handleChange.bind(this)
+    this.handleSubmit = this.handleSubmit.bind(this)
     this.setAuthorized = this.setAuthorized.bind(this)
     this.setIntruder = this.setIntruder.bind(this)
     this.onChange = this.onChange.bind(this)
+    this.uploadIntruderImageToStorage = this.uploadIntruderImageToStorage.bind(this)
+    this.uploadAuthorizedImageToStorage = this.uploadAuthorizedImageToStorage.bind(this)
+    firebase.initializeApp(config);
+    this.db = firebase.database();
+    this.storageRef = firebase.storage().ref();
+  }
+
+  uploadIntruderImageToStorage = (image) => {
+    let id = uuidv4();
+    let fileType = image.type.toString().replace("image/", ".");
+    return this.storageRef.child(id).put(image)
+      .then(() => {
+        this.db.ref('/intruders/').push({
+          imageId: id + fileType
+        });
+        console.log(`"${id} Uploaded Successfully`);
+      })
+  }
+
+  uploadAuthorizedImageToStorage = (image) => {
+    let id = uuidv4();
+    let fileType = image.type.toString().replace("image/", ".");
+    return this.storageRef.child(id).put(image)
+      .then(() => {
+        this.db.ref('/authorized/').push({
+          imageId: id + fileType,
+          name: this.state.name
+        });
+        console.log(`"${id} Uploaded Successfully`);
+      })
   }
 
   onChange(event) {
@@ -45,14 +85,27 @@ class App extends React.Component {
     try {
       this.setState({
         ...this.state,
-        file: URL.createObjectURL(event.target.files[0])
+        file: URL.createObjectURL(event.target.files[0]),
+        rawFile: event.target.files[0]
       })
     } catch (error) {
       console.log(error)
     }
   }
+
+  handleSubmit() {
+    if (this.state.intruder) {
+      this.uploadIntruderImageToStorage(this.state.rawFile);
+    } else {
+      this.uploadAuthorizedImageToStorage(this.state.rawFile);
+    }
+    alert("File Uploaded Successfully");
+    this.setState({
+      file: null
+    });
+  }
+
   render() {
-    console.log(this.state.intruder)
     return (
       <div className="App">
         <Image src={this.state.file} thumbnail />
@@ -75,7 +128,7 @@ class App extends React.Component {
               </div> : null}
             </Form.Group>
             <hr />
-            <Button variant="dark" size="lg" disabled={!this.state.file || (!this.state.name && !this.state.intruder) ? true : false}>Submit</Button>
+            <Button onClick={this.handleSubmit} variant="dark" size="lg" disabled={!this.state.file || (!this.state.name && !this.state.intruder) ? true : false}>Submit</Button>
           </Col>
         </Form>
       </div >
