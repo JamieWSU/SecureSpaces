@@ -108,6 +108,7 @@ class App extends React.Component {
   render() {
     return (
       <div className="App">
+        <h2>Secure Space</h2>
         <Image src={this.state.file} thumbnail />
         <Form>
           <Col>
@@ -119,8 +120,8 @@ class App extends React.Component {
               <label for="file">Upload Image</label>
             </Button>
             <hr />
-            <Button onClick={this.setIntruder} variant={this.state.intruder ? "dark" : "outline-dark"}>Intruder</Button>
-            <Button onClick={this.setAuthorized} variant={this.state.intruder ? "outline-dark" : "dark"}>Authorized</Button>
+            <Button onClick={this.setIntruder} variant={this.state.intruder ? "danger" : "outline-danger"}>Intruder</Button>
+            <Button onClick={this.setAuthorized} variant={this.state.intruder ? "outline-success" : "success"}>Authorized</Button>
             <Form.Group>
               {!this.state.intruder ? <div>
                 <br />
