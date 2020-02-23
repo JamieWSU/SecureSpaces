@@ -7,6 +7,8 @@ import numpy as np
 import PhoneMessaging.send_message as SMS
 from firebase import Firebase
 from datetime import datetime
+from PIL import Image
+
 
 config = {
     "apiKey": "AIzaSyCIb7b77N60HaFsUwsxuiiRJMtUfoC0ubs",
@@ -18,6 +20,22 @@ config = {
 firebase = Firebase(config)
 
 storage = firebase.storage()
+
+def isInStrArray(strArray, string):
+    for string_check in strArray:
+        if string_check == string:
+            return True
+    return False
+
+def cropImage(left, upper, right, lower, frame):
+    intruder = Image.open(frame)
+    box = (left, upper, right, lower)
+    intruder_crop = intruder.crop((left, upper, right, lower))
+    intruder_crop.save("./temp/"+frame, quality=95)
+    storage.child("tmp/"+frame).put("./temp/"+frame)
+    url = storage.child("tmp/"+frame).get_url("")
+    #print(url)
+
 #print(allFiles)
 
 #storage.child
@@ -57,8 +75,10 @@ video_face_encoding = []
 for friend in friends:
     personArray.append(Person("./"+ friendsDir +"/"+ friend, "friend"))
 
+intruderIndex = 0
 for intruder in intruders:
-    personArray.append(Person("./"+ intruderDir +"/"+ intruder, "Intruder"))
+    intruderIndex = intruderIndex + 1
+    personArray.append(Person("./"+ intruderDir +"/"+ intruder, "Intruder" + str(intruderIndex)))
 
 def sendIntruderMessage():
     # datetime object containing current date and time
@@ -85,8 +105,10 @@ for person in personArray:
 face_locations = []
 face_encodings = []
 face_names = []
+intruders_indices = []
 process_this_frame = True
 friendsOnlyIntruder = False
+alreadySentSMSIntruders = []
 while True:
     # Grab a single frame of video
     ret, frame = video_capture.read()
@@ -119,9 +141,9 @@ while True:
             best_match_index = np.argmin(face_distances)
             if matches[best_match_index]:
                 name = known_face_names[best_match_index]
-            if (name == "Intruder"):
-                if personArray[best_match_index].hasSentSMS == False:
-                    personArray[best_match_index].flipSentSMS()
+            #if ("Intruder" in name):
+                #if personArray[best_match_index].hasSentSMS == False:
+                    #personArray[best_match_index].flipSentSMS()
                     #sendIntruderMessage()
             if (friendsOnly and name == "Unknown" and friendsOnlyIntruder == False):
                 #sendIntruderMessage()
@@ -138,6 +160,12 @@ while True:
         right *= 4
         bottom *= 4
         left *= 4
+        if ("Intruder" in name):
+            if isInStrArray(alreadySentSMSIntruders, name) == False:
+                alreadySentSMSIntruders.append(name)
+                sendIntruderMessage()
+                cv2.imwrite("frame.jpg", frame)     # save frame as JPEG file
+                cropImage(left - 100, top - 100, right + 100, bottom + 100, "frame.jpg")
 
         # Draw a box around the face
         cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
