@@ -9,6 +9,7 @@ from firebase import Firebase
 from datetime import datetime
 import threading
 import time
+from pathlib import Path
 
 config = {
     "apiKey": "AIzaSyCIb7b77N60HaFsUwsxuiiRJMtUfoC0ubs",
@@ -68,20 +69,20 @@ class Faces:
             if imageIDIsInArray(self.imageIDArray,user.val()["imageId"]) == False:
                 isUpdated = True
                 self.imageIDArray.append(user.val()["imageId"])
-                storage.child(user.val()["imageId"]).download("intruders/" + user.val()["imageId"])
+                storage.child(user.val()["imageId"].split(".")[0]).download("intruders/intruders.jpg")
         all_users = db.child("authorized").get()
         for user in all_users.each():
             if imageIDIsInArray(self.imageIDArray,user.val()["imageId"]) == False:
                 isUpdated = True
                 self.imageIDArray.append(user.val()["imageId"])
-                storage.child(user.val()["imageId"]).download("authorized/" + user.val()["imageId"])
+                storage.child(user.val()["imageId"].split(".")[0]).download("friends/Jamie.jpg")
         if isUpdated:
             for friend in self.friends:
-                self.friendsArrayImage.append("./"+ friendsDir +"/"+ friend)
+                self.friendsArrayImage.append("friends/"+ friend)
                 self.friendsArrayName.append("Authorized")
             for intruder in self.intruders:
-                self.intrudersArrayImage.append("./"+ intruderDir +"/"+ intruder)
-                self.intrudersArrayName.append("Intruder" + len(intrudersArrayName))
+                self.intrudersArrayImage.append("intruders/"+ intruder)
+                self.intrudersArrayName.append("Intruder" + str(len(self.intrudersArrayName)))
 
 
 
@@ -128,6 +129,7 @@ known_face_names = []
 
 
 def updateImages(imageFile, name):
+    print(imageFile)
     imageNew = face_recognition.load_image_file(imageFile)
     image_face_encoding = face_recognition.face_encodings(imageNew)[0]
     known_face_names.append(name)
@@ -135,13 +137,13 @@ def updateImages(imageFile, name):
 
 
 index = 0
-for face in allFaces.friendsArrayImage:
-    updateImages(face.friendsArrayImage[index], face.friendsArrayName[index])
+for face, name in zip(allFaces.friendsArrayImage, allFaces.friendsArrayName):
+    updateImages(face, name)
     index += 1
 index = 0
 
-for face in allFaces.intrudersArrayImage:
-    updateImages(face.intrudersArrayImage[index], face.intrudersArrayName[index])
+for face, name in zip(allFaces.intrudersArrayImage, allFaces.intrudersArrayName):
+    updateImages(face, name)
     index += 1
 
 
@@ -152,6 +154,7 @@ face_names = []
 if (len(known_face_encodings) == 0):
     print("No Data :(")
     quit()
+print(known_face_encodings)
 process_this_frame = True
 friendsOnlyIntruder = False
 while True:
