@@ -100,6 +100,9 @@ class App extends React.Component {
       this.uploadAuthorizedImageToStorage(this.state.rawFile);
     }
     alert("File Uploaded Successfully");
+    this.setState({
+      file: null
+    });
   }
 
   render() {
