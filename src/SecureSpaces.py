@@ -4,7 +4,7 @@ import face_recognition
 import sys
 import cv2
 import numpy as np
-import PhoneMessaging.send_message as SMS
+import PhoneMessaging.send_mms as SMS
 from firebase import Firebase
 from datetime import datetime
 from PIL import Image
@@ -34,6 +34,8 @@ def cropImage(left, upper, right, lower, frame):
     intruder_crop.save("./temp/"+frame, quality=95)
     storage.child("tmp/"+frame).put("./temp/"+frame)
     url = storage.child("tmp/"+frame).get_url("")
+    message = SMS.Message("Intruder!")
+    message.sendMessage(url)
     #print(url)
 
 #print(allFiles)
@@ -80,15 +82,6 @@ for intruder in intruders:
     intruderIndex = intruderIndex + 1
     personArray.append(Person("./"+ intruderDir +"/"+ intruder, "Intruder" + str(intruderIndex)))
 
-def sendIntruderMessage():
-    # datetime object containing current date and time
-    now = datetime.now()
-
-    # dd/mm/YY H:M:S
-    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-    message = SMS.Message(dt_string + " - " + " Intruder!")
-    message.sendMessage()
-
 video_capture = cv2.VideoCapture(0)
 
 
@@ -109,6 +102,7 @@ intruders_indices = []
 process_this_frame = True
 friendsOnlyIntruder = False
 alreadySentSMSIntruders = []
+alreadySentSMSUnknown = []
 while True:
     # Grab a single frame of video
     ret, frame = video_capture.read()
@@ -163,9 +157,20 @@ while True:
         if ("Intruder" in name):
             if isInStrArray(alreadySentSMSIntruders, name) == False:
                 alreadySentSMSIntruders.append(name)
-                sendIntruderMessage()
+                #sendIntruderMessage()
                 cv2.imwrite("frame.jpg", frame)     # save frame as JPEG file
-                cropImage(left - 100, top - 100, right + 100, bottom + 100, "frame.jpg")
+                #cropImage(left - 100, top - 100, right + 100, bottom + 100, "frame.jpg")
+        if (name == "Unknown" and friendsOnly):
+            if isInStrArray(alreadySentSMSIntruders, name) == False:
+                nameOfUk = name + str(len(alreadySentSMSUnknown))               
+                alreadySentSMSUnknown.append(nameOfUk)
+                cv2.imwrite(nameOfUk + ".jpg", frame)
+                print(nameOfUk)
+                cropImage(left - 100, top - 100, right + 100, bottom + 100, nameOfUk + ".jpg") 
+                ukimage = face_recognition.load_image_file(nameOfUk + ".jpg")
+                ukimage_face_encoding = face_recognition.face_encodings(ukimage)[0]
+                known_face_encodings.append(ukimage_face_encoding)
+                known_face_names.append(nameOfUk)
 
         # Draw a box around the face
         cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)

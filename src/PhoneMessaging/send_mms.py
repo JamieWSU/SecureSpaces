@@ -12,14 +12,13 @@ class Message:
     def sendMessage(self, url):
         # Your Account SID from twilio.com/console
         # Your Auth Token from twilio.com/console
-    #client = Client(account_sid, auth_token)
-    client = Client(self.account_sid, self.auth_token)
-    message = client.messages \
-    .create(
-        #body="IntruderKJ",
-        body=self.message,
-        from_="+12055767590",
-        media_url=[url],
-        to="+15093080228",
-    )
-sendMessage(url);
+        #client = Client(account_sid, auth_token)
+        client = Client(self.account_sid, self.auth_token)
+        message = client.messages \
+        .create(
+            body=self.message,
+            from_="+12055767590",
+            media_url=[url],
+            to="+15093080228",
+        )
+#sendMessage(url);
