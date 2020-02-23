@@ -7,8 +7,13 @@ import numpy as np
 import PhoneMessaging.send_mms as SMS
 from firebase import Firebase
 from datetime import datetime
+import threading
+import time
+from pathlib import Path
+import asyncio
+import threading
+import urllib.request
 from PIL import Image
-
 
 config = {
     "apiKey": "AIzaSyCIb7b77N60HaFsUwsxuiiRJMtUfoC0ubs",
@@ -21,11 +26,7 @@ firebase = Firebase(config)
 
 storage = firebase.storage()
 
-def isInStrArray(strArray, string):
-    for string_check in strArray:
-        if string_check == string:
-            return True
-    return False
+db = firebase.database()
 
 def cropImage(left, upper, right, lower, frame):
     intruder = Image.open(frame)
@@ -36,11 +37,12 @@ def cropImage(left, upper, right, lower, frame):
     url = storage.child("tmp/"+frame).get_url("")
     message = SMS.Message("Intruder!")
     message.sendMessage(url)
-    #print(url)
 
-#print(allFiles)
-
-#storage.child
+def isInStrArray(strArray, string):
+    for string_check in strArray:
+        if string_check == string:
+            return True
+    return False
 
 # This is a demo of running face recognition on live video from your webcam. It's a little more complicated than the
 # other example, but it includes some basic performance tweaks to make things run a lot faster:
@@ -59,28 +61,94 @@ class Person:
     def flipSentSMS(self):
         self.hasSentSMS = True
 
+def imageIDIsInArray(givenArray, givenID):
+    for id_user in givenArray:
+        if id_user == givenID:
+            return True
+    return False
+
+
+class Faces(threading.Thread):
+    friends = [f for f in listdir("friends") if isfile(join("friends", f)) ]
+    intruders = [f for f in listdir("intruders") if isfile(join("intruders", f)) ]
+    personArray = []
+    friendsArrayImage = []
+    friendsArrayName = []
+    intrudersArrayImage = []
+    intrudersArrayName = []
+    imageIDArray = []
+    def updateDatabase(self):
+        isUpdated = False
+        all_users = db.child("authorized").get()
+        index = 0
+        for user in all_users.each():
+            url = storage.child(user.val()["imageId"]).get_url("")
+            urllib.request.urlretrieve(url, "friends/friends%d.jpg" % index)
+            index += 1
+            isUpdated = True
+        all_users = db.child("intruders").get()
+        index = 0
+        for user in all_users.each():
+            url = storage.child(user.val()["imageId"]).get_url("")
+            urllib.request.urlretrieve(url, "intruders/intruder%d.jpg" % index)
+            index += 1
+            isUpdated = True
+        if isUpdated:
+            for friend in self.friends:
+                self.friendsArrayImage.append("./friends/"+ friend)
+                self.friendsArrayName.append("Authorized")
+            for intruder in self.intruders:
+                self.intrudersArrayImage.append("./intruders/"+ intruder)
+                self.intrudersArrayName.append("Intruder " + str(len(self.intrudersArrayName)))
+
+        '''
+        for user in all_users.each():
+            if imageIDIsInArray(self.imageIDArray,user.val()["imageId"]) == False:
+                isUpdated = True
+                self.imageIDArray.append(user.val()["imageId"])
+                url = storage.child(user.val()["imageId"].split(".")[0]).get_url("")
+                urllib.request.urlretrieve(url, "intruders/intruders.jpg")
+        all_users = db.child("authorized").get()
+        for user in all_users.each():
+            if imageIDIsInArray(self.imageIDArray,user.val()["imageId"]) == False:
+                isUpdated = True
+                self.imageIDArray.append(user.val()["imageId"])
+                url = storage.child(user.val()["imageId"].split(".")[0]).get_url("")
+                urllib.request.urlretrieve(url, "friends/Jamie.jpg")
+        if isUpdated:
+            for friend in self.friends:
+                self.friendsArrayImage.append("./friends/"+ friend)
+                self.friendsArrayName.append("Authorized")
+            for intruder in self.intruders:
+                self.intrudersArrayImage.append("./intruders/"+ intruder)
+                self.intrudersArrayName.append("Intruder" + str(len(self.intrudersArrayName)))
+        '''
 # Get a reference to webcam #0 (the default one)
 #video_capture = cv2.VideoCapture(0)
 #Add everyone to a persons array
 #personArray = [zeak, kyle]
-friendsDir = "friends"
-intruderDir = "intruders"
+
+
+allFaces = Faces()
+allFaces.updateDatabase()
 friendsOnly = False;
 if len(sys.argv) == 2 and sys.argv[1] == 'S':
     friendsOnly = True
 
-friends = [f for f in listdir(friendsDir) if isfile(join(friendsDir, f)) ]
-intruders = [f for f in listdir(intruderDir) if isfile(join(intruderDir, f)) ]
-personArray = []
-video_face_encoding = []    
+#for friend in allFaces.friends:
+    #personArray.append(Person("./"+ friendsDir +"/"+ friend, "friend"))
 
-for friend in friends:
-    personArray.append(Person("./"+ friendsDir +"/"+ friend, "friend"))
+#for intruder in allFaces.intruders:
+    #personArray.append(Person("./"+ intruderDir +"/"+ intruder, "Intruder"))
 
-intruderIndex = 0
-for intruder in intruders:
-    intruderIndex = intruderIndex + 1
-    personArray.append(Person("./"+ intruderDir +"/"+ intruder, "Intruder" + str(intruderIndex)))
+def sendIntruderMessage():
+    # datetime object containing current date and time
+    now = datetime.now()
+
+    # dd/mm/YY H:M:S
+    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+    message = SMS.Message(dt_string + " - " + " Intruder!")
+    message.sendMessage()
 
 video_capture = cv2.VideoCapture(0)
 
@@ -88,22 +156,51 @@ video_capture = cv2.VideoCapture(0)
 # Create arrays of known face encodings and their names
 known_face_encodings = []
 known_face_names = []
-for person in personArray:
-    known_face_encodings.append(person.image_face_encoding)
-    known_face_names.append(person.faceName)
+#for person in allFaces.personArray:
+#known_face_encodings.append(person.image_face_encoding)
+#known_face_names.append(person.faceName)
 #known_face_encodings = [obama_face_encoding, biden_face_encoding]
 #known_face_names = ["Zeak","Intruder"]
+
+
+
+
+def updateImages(imageFile, name):
+    imageNew = face_recognition.load_image_file(imageFile)
+    image_face_encoding = face_recognition.face_encodings(imageNew)[0]
+    known_face_names.append(name)
+    known_face_encodings.append(image_face_encoding)
+
+index = 0
+
+#image = face_recognition.load_image_file(allFaces.friendsArrayImage[0])
+#face_recognition.face_encodings(image)
+
+
+for face, name in zip(allFaces.friendsArrayImage, allFaces.friendsArrayName):
+    updateImages(face, name)
+    index += 1
+index = 0
+
+for face, name in zip(allFaces.intrudersArrayImage, allFaces.intrudersArrayName):
+    updateImages(face, name)
+    index += 1
 
 # Initialize some variables
 face_locations = []
 face_encodings = []
 face_names = []
-intruders_indices = []
 process_this_frame = True
 friendsOnlyIntruder = False
 alreadySentSMSIntruders = []
 alreadySentSMSUnknown = []
+frameCount = 0
 while True:
+    frameCount += 1
+    if (frameCount > 100):
+        allFaces.updateDatabase()
+        frameCount = 0
+
     # Grab a single frame of video
     ret, frame = video_capture.read()
 
@@ -135,9 +232,9 @@ while True:
             best_match_index = np.argmin(face_distances)
             if matches[best_match_index]:
                 name = known_face_names[best_match_index]
-            #if ("Intruder" in name):
-                #if personArray[best_match_index].hasSentSMS == False:
-                    #personArray[best_match_index].flipSentSMS()
+            if (name == "Intruder"):
+                if personArray[best_match_index].hasSentSMS == False:
+                    personArray[best_match_index].flipSentSMS()
                     #sendIntruderMessage()
             if (friendsOnly and name == "Unknown" and friendsOnlyIntruder == False):
                 #sendIntruderMessage()
@@ -157,7 +254,6 @@ while True:
         if ("Intruder" in name):
             if isInStrArray(alreadySentSMSIntruders, name) == False:
                 alreadySentSMSIntruders.append(name)
-                #sendIntruderMessage()
                 cv2.imwrite("frame.jpg", frame)     # save frame as JPEG file
                 cropImage(left - 100, top - 100, right + 100, bottom + 100, "frame.jpg")
         if (name == "Unknown" and friendsOnly):
@@ -165,7 +261,6 @@ while True:
                 nameOfUk = name + str(len(alreadySentSMSUnknown))               
                 alreadySentSMSUnknown.append(nameOfUk)
                 cv2.imwrite(nameOfUk + ".jpg", frame)
-                print(nameOfUk)
                 cropImage(left - 100, top - 100, right + 100, bottom + 100, nameOfUk + ".jpg") 
                 ukimage = face_recognition.load_image_file(nameOfUk + ".jpg")
                 ukimage_face_encoding = face_recognition.face_encodings(ukimage)[0]

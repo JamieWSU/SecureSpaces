@@ -1,30 +1,38 @@
-@import url('https://fonts.googleapis.com/css?family=Tomorrow&display=swap');
 .App {
-  font-family: 'Tomorrow' ;
   text-align: center;
-  margin-top: 10px;
-  margin-bottom: 60px;
 }
 
-.upload {
-  width: 80px;
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
 }
 
-.inputfile {
-  opacity: 0;
-  overflow: hidden;
-  position: absolute;
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
 }
 
-.inputfile+label {
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
   color: white;
 }
 
-.inputfile+label {
-  cursor: pointer;
-  /* "hand" cursor */
+.App-link {
+  color: #61dafb;
 }
 
-.radiobutton {
-  margin-left: 27%;
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

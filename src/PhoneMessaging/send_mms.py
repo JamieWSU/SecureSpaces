@@ -21,4 +21,3 @@ class Message:
             media_url=[url],
             to="+15093080228",
         )
-#sendMessage(url);
