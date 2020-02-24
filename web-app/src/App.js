@@ -1,7 +1,7 @@
 import React from 'react';
 import * as APIKEYS from './apiKeys';
 import firebase from 'firebase'
-import { Image, Button, Form, Col } from 'react-bootstrap';
+import { Image, Button, Form, Col, Navbar } from 'react-bootstrap';
 import './App.css';
 import uuidv4 from 'uuid/v4';
 
@@ -20,7 +20,7 @@ class App extends React.Component {
     super(props)
     this.state = {
       file: null,
-      intruder: true
+      intruder: true,
     }
     this.handleChange = this.handleChange.bind(this)
     this.handleSubmit = this.handleSubmit.bind(this)
@@ -101,27 +101,42 @@ class App extends React.Component {
     }
     alert("File Uploaded Successfully");
     this.setState({
-      file: null
+      ...this.state,
+      complete: true
     });
+  }
+
+  handleRefresh = () => {
+    window.location.reload();
   }
 
   render() {
     return (
       <div className="App">
-        <h2>Secure Space</h2>
+        <Navbar bg="dark" variant="dark">
+          <Navbar.Brand>
+            <img
+              alt=""
+              src="https://lh3.googleusercontent.com/proxy/ylJBSBoT_JuxQiIYNL2APbpiyYMYyyTx_oC7BPLRG2XOkIcEFqwElR_evK61A17zUN0dbbIZidkYgQ6WYiZtUKcMLzfwdvqRx-UXpI-_-iW6A-1CmA"
+              width="25"
+              height="30"
+              className="d-inline-block align-top"
+            />{' '}Secure Spaces
+              </Navbar.Brand>
+        </Navbar>
         <Image src={this.state.file} thumbnail />
         <Form>
           <Col>
             <br />
             <Image className='upload' src={"https://image.freepik.com/free-icon/upload-document_318-8461.jpg"} />
             <br />
-            <Button variant="dark">
+            <Button disabled={this.state.complete} variant="dark">
               <input type="file" onChange={this.handleChange} name="file" id="file" class="inputfile" />
               <label for="file">Upload Image</label>
             </Button>
             <hr />
-            <Button onClick={this.setIntruder} variant={this.state.intruder ? "danger" : "outline-danger"}>Intruder</Button>
-            <Button onClick={this.setAuthorized} variant={this.state.intruder ? "outline-success" : "success"}>Authorized</Button>
+            <Button disabled={this.state.complete} onClick={this.setIntruder} variant={this.state.intruder ? "danger" : "outline-danger"}>Intruder</Button>
+            <Button disabled={this.state.complete} onClick={this.setAuthorized} variant={this.state.intruder ? "outline-success" : "success"}>Authorized</Button>
             <Form.Group>
               {!this.state.intruder ? <div>
                 <br />
@@ -129,7 +144,11 @@ class App extends React.Component {
               </div> : null}
             </Form.Group>
             <hr />
-            <Button onClick={this.handleSubmit} variant="dark" size="lg" disabled={!this.state.file || (!this.state.name && !this.state.intruder) ? true : false}>Submit</Button>
+            {!this.state.complete ?
+              <Button onClick={this.handleSubmit} variant="dark" size="lg" disabled={!this.state.file || (!this.state.name && !this.state.intruder) ? true : false}>Submit</Button>
+              :
+              <Button onClick={this.handleRefresh} variant="dark" size="lg">Reload</Button>
+            }
           </Col>
         </Form>
       </div >
